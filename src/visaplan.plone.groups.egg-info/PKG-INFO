@@ -1,0 +1,154 @@
+Metadata-Version: 1.1
+Name: visaplan.plone.groups
+Version: 1.0.2
+Summary: Extended groups management for Plone
+Home-page: https://pypi.org/project/visaplan.plone.groups
+Author: Tobias Herp
+Author-email: tobias.herp@visaplan.com
+License: GPL version 2
+Description: .. This README is meant for consumption by humans and pypi. Pypi can render rst files so please do not use Sphinx features.
+           If you want to learn more about writing documentation, please check out: http://docs.plone.org/about/documentation_styleguide.html
+           This text does not appear on pypi or github. It is a comment.
+        
+        =====================
+        visaplan.plone.groups
+        =====================
+        
+        Extended groups management for Plone
+        
+        This package contains some additional groups management pages and a simple
+        feature for scheduled activation and termination of group memberships,
+        using a few tables in a PostgreSQL database
+        (with currently hardcoded names).
+        
+        The purpose of this package (for now) is *not* to provide new functionality
+        but to factor out existing functionality from an existing monolitic Zope product.
+        Thus, it is more likely to lose functionality during further development
+        (as parts of it will be forked out into their own packages,
+        or some functionality may even become obsolete because there are better
+        alternatives in standard Plone components).
+        
+        The additional fields for groups are not (yet) part of this package.
+        
+        
+        Features
+        --------
+        
+        - Group administration pages 
+        - A very simple bulletin board for the group members
+        - A simple scheduler for group memberships
+        
+        
+        Examples
+        --------
+        
+        This add-on can be seen in action at the following sites:
+        
+        - https://www.unitracc.de
+        - https://www.unitracc.com
+        
+        
+        Documentation
+        -------------
+        
+        Sorry, we don't have real user documentation yet.
+        
+        
+        Installation
+        ------------
+        
+        Install visaplan.plone.groups by adding it to your buildout::
+        
+            [buildout]
+        
+            ...
+        
+            eggs =
+                visaplan.plone.groups
+        
+        
+        and then running ``bin/buildout``
+        
+        
+        Contribute
+        ----------
+        
+        - Issue Tracker: https://github.com/visaplan/visaplan.plone.groups/issues
+        - Source Code: https://github.com/visaplan/visaplan.plone.groups
+        
+        
+        Support
+        -------
+        
+        If you are having issues, please let us know;
+        please use the issue tracker mentioned above.
+        
+        
+        License
+        -------
+        
+        The project is licensed under the GPLv2.
+        
+        .. vim: tw=79 cc=+1 sw=4 sts=4 si et
+        
+        
+        Contributors
+        ============
+        
+        - Tobias Herp, tobias.herp@visaplan.com
+        
+        
+        Changelog
+        =========
+        
+        
+        1.0.2 (2019-05-13)
+        ------------------
+        
+        Bugfixes:
+        
+        - Fixed incomplete conversion of Tomcom adapters usage to ``getToolByName``
+        
+        [tobiasherp]
+        
+        
+        1.0.1 (2019-05-09)
+        ------------------
+        
+        Note: Due to a regression, please proceed to version 1.0.2!
+        
+        - New functions ``utils.generate_{structure,course}_group_ids``,
+          ``generate_structure_group_tuples``
+        
+        - Support for option ``resolve_role`` for the following functions:
+        
+          - ``split_group_id``
+          - ``generate_structure_group_tuples``
+        
+          With ``resolve_role=True``, these functions tell a role a role, and a
+          suffix a suffix; e.g., the ``Author`` group of structures is not given the
+          ``Author`` but the ``Editor`` local role.
+        
+          For now, the default value for ``resolve_role`` is *False*;
+          this may change in future versions.
+        
+        
+        [tobiasherp]
+        
+        
+        1.0 (2018-09-19)
+        ----------------
+        
+        - Initial release.
+          [tobiasherp]
+        
+Platform: UNKNOWN
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Plone
+Classifier: Framework :: Plone :: 4.3
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: German
+Classifier: Operating System :: OS Independent
+Classifier: License :: OSI Approved :: GNU General Public License v2 (GPLv2)

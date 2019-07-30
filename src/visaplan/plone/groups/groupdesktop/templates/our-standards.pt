@@ -1,0 +1,7 @@
+<tal:ns define="
+groupdesktop python:here.getBrowser('groupdesktop');
+topic string:standard;
+"><metal:bigmac
+use-macro="here/our-articles/macros/ourstuff">
+	Ook.
+<!-- vim: set ts=2 sts=2 sw=2 si noet hls :--></metal:bigmac></tal:ns>

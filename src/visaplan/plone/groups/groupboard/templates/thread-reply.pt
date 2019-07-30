@@ -1,0 +1,171 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      lang="en"
+      metal:use-macro="here/main_template/macros/master"
+      i18n:domain="plone">
+    <head>
+      <metal:css fill-slot="style_slot">
+      <link rel="stylesheet" type="text/css"
+            href="/++resource++unitracc-resource/board.css"/>
+      </metal:css>
+      <metal:no-ads fill-slot="column_two_slot"/>
+      <metal:no-ads fill-slot="column_one_slot"/>
+    </head>
+
+    <body>
+        <metal:block fill-slot="top_slot"
+             tal:define="dummy python:request.set('disable_border',1);" />
+        <metal:cr_outer fill-slot="breadcrumb">
+            <metal:breadcrumb use-macro="here/crumbs/macros/main"/>
+        </metal:cr_outer>
+        <metal:main fill-slot="main"
+                    tal:define="
+groupboard python:here.getBrowser('groupboard');
+thread request/tid|options/tid;
+error request/error|nothing;
+mid request/mid|nothing;
+all request/all|nothing;
+reply request/reply|python:groupboard.get_message(thread,mid);
+guidelinesuid groupboard/get_guidelines;
+messages python:groupboard.get_messages(subject_id=thread);
+here_url here/absolute_url;
+translate python:context.getAdapter('translate');
+msgstrDeleteConfirm python:translate('Do you really want to delete this item?');
+">
+            <tal:block tal:condition="python: messages=='redirect'">
+                <tal:redirect
+                    tal:define="desktop_path here/@@unitraccfeature/desktop_path;
+                                foo python:request.response.redirect(desktop_path+'/@@groupboard/viewBoard')"/>
+                </tal:block>
+            <tal:block tal:condition="python:messages!='redirect'">
+                <div class="col-md-9">
+                    <div class="row">
+                        <div class="jq-load">
+                            <form action="@@groupboard/editThread"
+                                    tal:condition="messages/first/id"
+                                    class="form-action">
+                                <input type="hidden" name="tid"
+                                       tal:attributes="value thread"/>
+                                <button type="submit" class="btn btn-default"
+                                        title="Edit thread"
+                                        tal:condition="messages/first/canEdit"
+                                        i18n:translate="">
+                                    Edit thread
+                                </button>
+                            </form>
+                            <form action="@@groupboard/delete_thread" method="POST"
+                                  class="form-action"
+                                  tal:condition="messages/first/canDelete" >
+                                <input type="hidden" name="tid"
+                                       tal:attributes="value thread"/>
+                                <button type="submit" class="btn btn-default" title="Delete thread"
+                                        i18n:translate=""
+                                        tal:define="msgstrDeleteConfirm python:translate('Do you really want to delete ${title}?', mapping={'title':messages['title']['thread_subject']}) or msgstrDeleteConfirm "
+                                        tal:attributes="onclick string:return confirm('${msgstrDeleteConfirm}')">
+                                    Delete thread
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="clear"></div>
+                <div class="replys" >
+                    <div class='area-title'>
+                        <h1 i18n:translate="">
+                            Thread title
+                            <q i18n:name="title"  tal:content=" messages/title/thread_subject">Thread title</q>
+                        </h1>
+                        <h2 i18n:translate=""
+                            tal:define="groupsharing python:here.getBrowser('groupsharing');
+                                        group_name python:groupsharing.get_group_info_by_id(messages['title']['group_uid']);"
+                            >
+                            of working group
+                            <q i18n:name="group_title" tal:content="group_name/group_title">group name</q>
+                        </h2>
+                    </div>
+                    <div class="discussion container-scrollable">
+                        <div class="comment first">
+                            <tal:markread tal:define="dummy python:groupboard.mark_as_read(messages['first']['id'])"/>
+
+                            <p class="user" i18n:translate="" >
+                                Posted by
+                                <tal:block i18n:name="user" tal:content="messages/first/user">user</tal:block>
+                                on
+                                <tal:block i18n:name="date" tal:content="messages/first/saved">datum</tal:block>
+                            </p>
+                            <p class="preserve-whitespace"><b tal:content="messages/first/message"/></p>
+                        </div>
+
+                        <tal:repeating tal:condition="messages/replys"
+                            tal:repeat="message messages/replys">
+                            <tal:markread tal:define="dummy python:groupboard.mark_as_read(message['id'])"/>
+                            <div class="comment">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <a tal:attributes="href string:${here_url}/@@groupboard/replyThread?tid=${thread}&mid=${message/id}"
+                                               title="Edit post" i18n:attributes="title"
+                                               style="float:left;margin-right:5px;"
+                                               tal:condition="message/canEdit">
+                                                <i class="glyphicon glyphicon-pencil"></i>
+                                        </a>
+                                        <a tal:condition="message/canDelete"
+                                           tal:attributes="href string:@@groupboard/delete_post/?tid=${thread}&id=${message/id};
+                                                           onclick string:return confirm('${msgstrDeleteConfirm}')"
+                                           style="float:left;margin-right:5px;"
+                                           title="Delete post"
+                                           i18n:attributes="title"
+                                           >
+                                                <i class="glyphicon glyphicon-trash"></i>
+                                        </a>
+                                        <p i18n:translate="">
+                                            Posted by
+                                            <tal:block i18n:name="user" tal:content="message/user"/>
+                                            on
+                                            <tal:block i18n:name="date" tal:content="message/saved"/>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="clear"></div>
+                                <p class="preserve-whitespace" tal:content="message/message"/>
+                            </div>
+                        </tal:repeating>
+                    </div>
+                </div>
+                <div class="field" style="margin-top:20px;">
+                    <form method="POST" action="@@groupboard/save_reply">
+                        <input type="hidden" name="mid"
+                               tal:condition="mid"
+                               tal:attributes="value mid" />
+                        <input type="hidden" tal:attributes="value thread" name="tid" />
+
+                        <label tal:attributes="class python:error and 'checkbox text-error' or 'checkbox'">
+                            <input type="checkbox" name="boardrules"
+                                       id="boardrules"/>
+                            <i class="glyphicon glyphicon-exclamation-sign"></i>
+                            <tal:block i18n:translate="boardguidelines">
+                                I certify that my contribution meets the
+                                <a href="/@@resolveuid/12345" target="_blank"
+                                   tal:attributes="href string:/@@resolvei18n/${guidelinesuid}"
+                                   i18n:name="boardguidelineslink"
+                                   i18n:translate="boardguidelineslink">
+                                    board guidelines</a>.
+                            </tal:block>
+                        </label>
+                        <label i18n:translate=""
+                               tal:condition="not: mid">Add post</label>
+                        <label i18n:translate=""
+                               tal:condition="mid">Edit post</label>
+                        <textarea class="col-md-9" rows="10" name="reply"
+                                  tal:content="reply|nothing"></textarea>
+                        <br/>
+                        <input class="btn btn-primary" type="submit" value="Save" i18n:attributes="value">
+                    </form>
+                </div>
+            </tal:block>
+        </metal:main>
+    </body>
+
+
+</html>

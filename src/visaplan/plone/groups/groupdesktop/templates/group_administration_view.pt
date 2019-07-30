@@ -1,0 +1,70 @@
+<metal:block metal:use-macro="here/main_template/macros/master"
+             i18n:domain="plone">
+
+    <metal:no-ads fill-slot="ad-block-above-content"/>
+    <metal:no-ads fill-slot="column_one_slot"/>
+    <metal:no-ads fill-slot="column_two_slot"/>
+
+<metal:block metal:fill-slot="main">
+    <metal:block metal:define-macro="main"
+                 tal:define="form nocall:request/form;
+                             gid form/gid | nothing;
+                             groupdesktop nocall:context/@@groupdesktop;
+                             dummy python:groupdesktop.auth_view_group_administration(gid);
+                             groupsharing nocall:context/@@groupsharing;
+                             group_info python:groupsharing.get_group_info_by_id(gid);
+                             absurl python:context.absolute_url();
+                             ">
+
+    <h1 class="documentFirstHeading"
+        i18n:translate="">
+        Group administration for
+        <tal:block tal:content="group_info/group_title"
+                   i18n:name="value"/>
+    </h1>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="listing-item">
+                <div class="box">
+                    <div class="title">
+                        <h3 i18n:translate="">TAN Manager</h3>
+                    </div>
+                </div>
+                <ul>
+                    <li>
+                        <a tal:attributes="href string:${absurl}/create_tan?gid=${gid}"
+                           i18n:translate="">
+                           Create TAN
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="listing-item">
+                <div class="box">
+                    <div class="title">
+                        <h3 i18n:translate="">Group Management</h3>
+                    </div>
+                </div>
+                <ul>
+                    <li>
+                        <a tal:attributes="href string:${absurl}/group_administration_user_view?gid=${gid}"
+                           i18n:translate="">
+                           Manage group memberships
+                        </a>
+                    </li>
+                    <li>
+                        <a tal:attributes="href string:${absurl}/group_administration_learning_progress_view?gid=${gid}"
+                           i18n:translate="learningprogress">
+                           Learning progress
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    </metal:block>
+</metal:block>
+
+</metal:block>

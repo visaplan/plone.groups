@@ -1,0 +1,38 @@
+<metal:block metal:use-macro="here/main_template/macros/master"
+             i18n:domain="plone">
+
+    <metal:no-ads fill-slot="column_one_slot"/>
+    <metal:no-ads fill-slot="column_two_slot"/>
+
+<metal:block metal:fill-slot="main">
+    <metal:block metal:define-macro="main"
+                 tal:define="form nocall:request/form;
+                             gid form/gid | nothing;
+                             groupdesktop nocall:context/@@groupdesktop;
+                             coursestatistics nocall:context/@@coursestatistics;
+                             dummy python:groupdesktop.auth_view_group_administration(gid);
+                             groupsharing nocall:context/@@groupsharing;
+                             group_info python:groupsharing.get_group_info_by_id(gid);
+                             course_infos python:gid and groupsharing.get_course_info_for_group_ids([gid])">
+
+        <h1 class="documentFirstHeading"
+            i18n:translate="">
+            Learning progress overview for courses accessible through group
+            "<tal:block tal:content="group_info/group_title"
+                        i18n:name="name">Gruppenname</tal:block>"
+        </h1>
+
+        <tal:block tal:condition="course_infos"
+                   tal:repeat="dict_ course_infos">
+            <h3 tal:content="dict_/group_title"/>
+            <tal:block tal:define="course_uid dict_/uid;
+                                   results python:coursestatistics.get_statistic_overview(course_uid, gid);
+                                   show_checkbox python:False">
+                <metal:block metal:use-macro="context/manage_statistic_course/macros/table"/>
+            </tal:block>
+        </tal:block>
+
+    </metal:block>
+</metal:block>
+
+</metal:block>

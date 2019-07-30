@@ -1,0 +1,229 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser">
+    
+    <browser:page
+             for="*"
+             name="gdmacros"
+             template="gdmacros.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="group_administration_learning_progress_view"
+             template="group_administration_learning_progress_view.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="group_administration_user_view"
+             template="group_administration_user_view.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="group_administration_view"
+             template="group_administration_view.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-animations"
+             template="our-animations.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-articles"
+             template="our-articles.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-audios"
+             template="our-audios.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-binaries"
+             template="our-binaries.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-courses"
+             template="our-courses.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-events"
+             template="our-events.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-formulas"
+             template="our-formulas.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-glossaries"
+             template="our-glossaries.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-images"
+             template="our-images.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-literatures"
+             template="our-literatures.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-news"
+             template="our-news.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-standards"
+             template="our-standards.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-tables"
+             template="our-tables.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="our-videos"
+             template="our-videos.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-animations"
+             template="our-animations.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-articles"
+             template="our-articles.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-audios"
+             template="our-audios.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-binaries"
+             template="our-binaries.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-courses"
+             template="our-courses.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-events"
+             template="our-events.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-formulas"
+             template="our-formulas.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-glossaries"
+             template="our-glossaries.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-images"
+             template="our-images.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-literatures"
+             template="our-literatures.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-news"
+             template="our-news.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-standards"
+             template="our-standards.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-tables"
+             template="our-tables.pt"
+             permission="zope2.View"
+             />
+
+    <browser:page
+             for="*"
+             name="my-videos"
+             template="our-videos.pt"
+             permission="zope2.View"
+             />
+
+</configure>

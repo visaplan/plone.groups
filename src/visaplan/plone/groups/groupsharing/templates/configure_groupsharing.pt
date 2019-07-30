@@ -1,0 +1,54 @@
+<metal:block metal:use-macro="here/main_template/macros/master"
+             i18n:domain="plone">
+
+<metal:block fill-slot="top_slot"
+             tal:define="dummy python:request.set('disable_border',1)" />
+
+<metal:block metal:fill-slot="main"
+             tal:define="dummy context/@@tpcheck/auth_manage_portal;
+                         groupsharing nocall:context/@@groupsharing;
+                         settings nocall:context/@@settings;
+                         key groupsharing/config_storage_key;
+                         dict_ python:settings.get(key)">
+
+    <h1 class="documentFirstHeading"
+        i18n:translate="">
+        Configure group sharing
+    </h1>
+
+    <form method="post"
+          tal:attributes="action string:${context/portal_url}/@@settings/set">
+
+        <fieldset>
+            <legend i18n:translate="">Settings</legend>
+
+            <div class="field">
+                <label i18n:translate="">
+                    Subject remove group membership
+                </label>
+                <input type="text" name="email_remove_group_membership_subject"
+                       tal:attributes="value dict_/email_remove_group_membership_subject | nothing"/>
+            </div>
+
+
+            <div class="field">
+                <label i18n:translate="">
+                    Email template remove group membership
+                </label>
+                <textarea rows="30" class="width-98" name="email_remove_group_membership"><tal:block tal:content="dict_/email_remove_group_membership | nothing"/></textarea>
+            </div>
+
+            <input type="hidden" name="key"
+                   tal:attributes="value key"/>
+            <button class="btn btn-primary"
+                   type="submit" value="Save"
+                   i18n:translate="label_save">
+                Save
+            </button>
+        </fieldset>
+
+    </form>
+
+</metal:block>
+
+</metal:block>

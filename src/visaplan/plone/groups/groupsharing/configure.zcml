@@ -1,0 +1,17 @@
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:browser="http://namespaces.zope.org/browser"
+           xmlns:five="http://namespaces.zope.org/five">
+
+    <browser:page
+        for="*"
+        name="groupsharing"
+        class=".browser.Browser"
+        permission="zope2.View"
+        allowed_interface=".browser.IGroupSharing"
+        />
+
+    <include package=".templates" />
+    <include package="visaplan.tools" />
+    <include package="visaplan.plone.tools" />
+
+</configure>

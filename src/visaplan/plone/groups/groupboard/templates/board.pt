@@ -1,0 +1,150 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      lang="en"
+      metal:use-macro="here/main_template/macros/master"
+      i18n:domain="plone">
+
+    <metal:block fill-slot="top_slot"
+             tal:define="dummy python:request.set('disable_border',1);" />
+    <metal:no-ads fill-slot="column_two_slot"/>
+    <metal:no-ads fill-slot="column_one_slot"/>
+    <head>
+      <metal:css fill-slot="style_slot">
+        <metal:css define-macro="chosen-css"/>
+      </metal:css>
+    </head>
+    <body>
+        <metal:cr_outer fill-slot="breadcrumb">
+            <metal:breadcrumb use-macro="here/crumbs/macros/main"/>
+        </metal:cr_outer>
+
+        <metal:main fill-slot="main"
+                    tal:define="group request/gid|nothing;
+                                browse python: here.getBrowser('groupboard');
+                                threads python: browse.get_messages(group_id=group);
+                                translate python:context.getAdapter('translate');
+                                msgstrDeleteConfirm python:translate('Do you really want to delete this item?');">
+
+            <div class="area-title">
+                <h1 tal:condition="group"
+                    i18n:translate="">
+                    Groupboard for
+                    <span i18n:name="group"
+                       tal:define="groupsharing python:here.getBrowser('groupsharing');
+                                   group_name python:groupsharing.get_group_info_by_id(group);"
+                       tal:content="group_name/group_title">
+                       Gruppentitel
+                    </span>
+                </h1>
+                <h1 class="documentFirstHeading"
+                    tal:condition="python: not group"
+                    i18n:translate="">
+                    Groupboards
+                </h1>
+            </div>
+            <div class="area-content"
+                 tal:define="desktop_path here/@@unitraccfeature/desktop_path">
+                <div class="well">
+                    <div class="well-content">
+                        <p i18n:translate="board_description_group"
+                           tal:condition="group">
+                        The list below gives you an overview of all threads of the current working group.
+                        </p>
+                        <p i18n:translate="board_description"
+                           tal:condition="not:group">
+                        The list below gives you an overview of all threads of all working groups in which you are involved.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Hauptbereich des Gruppen-Forums -->
+                <div>
+                    <!-- Überschriften Border -->
+                    <div class="border chosen-container-single">
+                        <!-- Überschrift -->
+
+                        <form action="@@groupboard/newThread"
+                              tal:attributes="action string:$desktop_path/@@groupboard/newThread">
+                            <input tal:condition="group" type="hidden" tal:attributes="value group" name="gid"/>
+                            <button type="submit"
+                                    class="btn btn-primary">
+                                 <i class="glyphicon glyphicon-plus icon-white"></i>
+                                 <tal:block i18n:translate="">
+                                     Create a new thread
+                                 </tal:block>
+                             </button>
+                        </form>
+                    </div>
+
+                    <!-- Thread Body -->
+                    <table cellspacing="0" cellpadding="0"
+                           class="datatb table table-bordered table-hover table-sorted" sort="-1" aaSorting="2,asc">
+                        <thead>
+                            <tr >
+                                <th i18n:translate="">
+                                    Thread
+                                </th>
+                                <th i18n:translate="">
+                                    Group
+                                </th>
+                                <th i18n:translate="">
+                                    Latest post
+                                </th>
+                                <th i18n:translate="">
+                                    Added by
+                                </th>
+                                <td><!-- kein sortierbarer Inhalt --></td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <tal:loop-new tal:repeat="thread threads/new">
+                            <tr tal:condition="thread">
+                                <td tal:attributes=" id thread/id" class="my-code-listing-item border-bottom-e4e4e4">
+                                    <a tal:attributes="href string:@@groupboard/replyThread?tid=${thread/id}"
+                                           tal:content="thread/thread_subject"></a>
+                                </td>
+                                <td tal:content="thread/group"></td>
+                                <td><tal:dateblock tal:content="thread/saved"/></td>
+                                <td><tal:ublock tal:content="thread/user"/></td>
+                                <td>
+                                    <a tal:attributes="href string:@@groupboard/replyThread?tid=${thread/id}"><i class="glyphicon glyphicon-eye-open"></i></a>
+                                    <a tal:condition="thread/canDelete"
+                                       tal:attributes="href string:@@groupboard/deleteThread?tid=${thread/id}"><i class="glyphicon glyphicon-trash"></i></a>
+                                </td>
+                            </tr>
+                        </tal:loop-new>
+                        <tal:loop-read tal:repeat="thread threads/read">
+                            <tr tal:condition="thread">
+                                <td tal:attributes=" id thread/id" class="my-code-listing-item border-bottom-e4e4e4">
+                                    <a tal:attributes="href string:@@groupboard/replyThread?tid=${thread/id}"
+                                           tal:content="thread/thread_subject"></a>
+                                </td>
+                                <td class="my-code-listing-item border-bottom-e4e4e4" tal:content="thread/group"></td>
+                                <td class="my-code-listing-item border-bottom-e4e4e4"><tal:dateblock tal:content="thread/saved"/></td>
+                                <td class="my-code-listing-item border-bottom-e4e4e4"><tal:ublock tal:content="thread/user"/></td>
+                                <td class="my-code-listing-item border-bottom-e4e4e4">
+                                    <a tal:attributes="href string:@@groupboard/replyThread?tid=${thread/id}">
+                                        <i class='glyphicon glyphicon-eye-open'></i>
+                                    </a>
+                                    <tal:if-can-delete tal:condition="thread/canDelete">
+                                    <a href="@@groupboard/delete_thread"
+                                       tal:define="msgstrDeleteConfirm python:translate('Do you really want to delete ${title}?', mapping={'title':thread['thread_subject']}) or msgstrDeleteConfirm "
+                                       tal:attributes="href string:@@groupboard/delete_thread?tid=${thread/id};
+                                                       onclick string:return confirm('${msgstrDeleteConfirm}')"
+                                       >
+                                        <i class="glyphicon glyphicon-trash"></i>
+                                    </a>
+                                    </tal:if-can-delete>
+                                </td>
+                            </tr>
+                        </tal:loop-read>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </metal:main>
+    </body>
+
+</html>

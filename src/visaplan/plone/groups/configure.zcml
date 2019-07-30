@@ -1,0 +1,17 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser">
+
+    <include package="visaplan.tools" />
+    <include package="visaplan.plone.tools" />
+    <include package="visaplan.kitchen" />
+    <include package="visaplan.plone.breadcrumbs" />
+
+    <include package=".groupboard" />
+
+    <include package=".groupdesktop" />
+
+    <include package=".groupsharing" />
+
+    <include package=".unitraccgroups" />
+</configure>

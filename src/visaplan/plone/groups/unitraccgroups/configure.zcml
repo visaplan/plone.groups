@@ -1,0 +1,14 @@
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:browser="http://namespaces.zope.org/browser"
+           xmlns:five="http://namespaces.zope.org/five">
+
+  <browser:page
+      for="*"
+      name="unitraccgroups"
+      class=".browser.Browser"
+      permission="zope2.View"
+      allowed_interface=".browser.IUnitraccGroups"
+      />
+  <include package="visaplan.tools" />
+
+</configure>

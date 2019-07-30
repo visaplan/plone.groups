@@ -1,0 +1,8 @@
+setuptools
+visaplan.tools>=1.2.4.dev2
+visaplan.plone.tools>=1.1.4.dev1
+visaplan.plone.adapters
+visaplan.plone.sqlwrapper
+visaplan.plone.infohubs
+visaplan.plone.breadcrumbs<1.0
+visaplan.plone.base

@@ -1,0 +1,304 @@
+<tal:comment condition="python:0"><!--
+Dieses Template enthält das wichtige Makro our-stuff, das von ... eingebunden wird.
+
+Perspektivisch werden alle Sichten my-news.pt, my-images.pt etc. Aliase der entsprechenden Sichten our-news.pt, our-images.pt etc. im groupdesktop-Browser sein.
+
+gf:
+./configure.zcml, ./__init__.py
+
+Generische Strings kommen aus der getLoopDicts-Methode (../browser.py)
+--></tal:comment
+><tal:ns define="
+dummy python:context.getAdapter('authorized')('unitracc: View myCONTENT');
+hai context/hubandinfo/get;
+hub python:hai['hub'];
+info python:hai['info'];
+groupdesktop python:hub['groupdesktop'];
+topic string:article;
+">
+<metal:bigmac define-macro="ourstuff"
+><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      lang="en"
+    metal:use-macro="here/main_template/macros/master"
+    i18n:domain="plone"
+    tal:define="
+tid tid | string:our-${topic}s;
+">
+
+    <metal:block fill-slot="top_slot"
+                 tal:define="dummy python:request.set('disable_border', 1)" />
+    <metal:no-ads fill-slot="column_one_slot"/>
+    <metal:no-ads fill-slot="column_two_slot"/>
+
+<body>
+
+
+<metal:cr_outer fill-slot="breadcrumb">
+<!-- [ our-articles.pt: fülle Slot breadcrumb ... [ -->
+    <metal:macro use-macro="here/crumbs/macros/main"/>
+<!-- ] ... our-articles.pt: fülle Slot breadcrumb ] -->
+</metal:cr_outer>
+
+<metal:main fill-slot="main"
+            tal:define="
+hai hai | context/hubandinfo/get;
+hub python:hai['hub'];
+info python:hai['info'];
+groupdesktop python:hub['groupdesktop'];
+grpinfo python:groupdesktop.getInfo(topic, hub=hub, info=info);
+tid python:grpinfo['strings']['page'];
+devmode python:grpinfo['devmode'];
+gid python:info['gid'];
+suffix string:?gid=$gid;
+nonloop python:groupdesktop.getLoopDicts(gid, topic);
+search_kwargs search_kwargs | python:{};
+brains python:hub['mycontent'].get(nonloop['filter'], **search_kwargs);
+current python:grpinfo['current'];
+gmac nocall:here/gdmacros/macros;
+show_download_links show_download_links |
+                    python:topic in ('binary',
+                                      );
+">
+
+    <div class="area-content">
+        <div class="area-title">
+            <h1 tal:content="nonloop/text"
+                metal:define-slot="headline">
+            Unsere Artikel
+            </h1>
+        </div>
+        <div class="well" metal:define-slot="well">
+            <div class="well-content">
+                <metal:slot define-slot="new-stuff-hint">
+                <tal:ns define="hint_ready nonloop/editorial_hint">
+                    <p tal:condition="python:hint_ready is None"
+                       i18n:translate="">
+                         Please note that your
+                         <tal:span replace="nonloop/thingies"
+                                   i18n:name="thingies">articles</tal:span>
+                         have to be submitted so that they can be reviewed by the
+                         editorial staff of UNITRACC and be considered for the
+                         publication plan.  When
+                         <tal:span replace="nonloop/a_thingy"
+                         i18n:name="a-thingy">an article</tal:span>
+                         has been accepted by UNITRACC, you will no longer be able to
+                         edit the respective content.
+                    </p>
+                <p tal:condition="hint_ready"
+                   tal:content="hint_ready">
+                Ein speziell angepaßter Hinweistext, sofern ein solcher für die Message-ID
+                own_thingies_desc vorhanden ist (gf: ../../../i18n/unitracc-plone-de.po)
+                Ein Wert None (das None-Objekt) triggert den obigen Standardwert;
+                ein anderer "falscher" Wert unterdrückt diesen Absatz
+               (wenn auch derzeit leider nicht dessen Container).
+                </p>
+                </tal:ns>
+                </metal:slot>
+            </div>
+        </div>
+        <metal:form define-macro="add-form">
+        <form method="post" action="/@@temp/addArticle"
+              metal:define-slot="add-form"
+              tal:define="temp nocall:context/@@temp"
+              tal:condition="python:temp.canAdd(nonloop['portal_type'])"
+              tal:attributes="action string:${nonloop/add_url}">
+
+            <input type="hidden" name="gid"
+                   tal:attributes="value gid"/>
+            <button type="submit"
+                    class="btn btn-primary">
+                <i class="glyphicon glyphicon-plus icon-white"></i>
+                <tal:txt content="nonloop/add_text">
+                    Neuen Artikel erstellen
+                </tal:txt>
+            </button>
+            <tal:xmli define="enable_xmlimport enable_xmlimport | request/enable_xmlimport | nothing;
+                              "
+                      condition="python:enable_xmlimport">
+            <tal:xml2 define="xmlimport nocall: context/@@xmlimport;
+                              portal_type python:nonloop['portal_type'];
+                              "
+                      condition="python:xmlimport.canImport(portal_type)">
+            <a class="btn btn-default"
+               tal:define="
+untranslated python:hub['untranslated'].get(portal_type);
+import_text python:untranslated['import_text'];
+url python:'/temp/import-%(thingies)s' % untranslated + suffix;
+"
+tal:attributes="href url">
+                <i class="glyphicon glyphicon-plus"></i>
+                <tal:txt i18n:translate=""
+                         tal:replace="import_text">
+                Import thingies from XML
+                </tal:txt>
+            </a>
+            </tal:xml2>
+            </tal:xmli>
+        </form>
+        </metal:form>
+
+            <tal:block tal:define="
+translate python:hub['translate'];
+temp nocall:here/@@temp;
+msgstrView python:translate('View');
+msgstrEdit python:translate('Edit');
+msgstrDelete python:translate('Delete');
+msgstrDeleteConfirm python:translate('Do you really want to delete this item?');
+ggibi python:hub['groupsharing'].get_group_info_by_id;
+">
+
+                <table cellspacing="0" cellpadding="0"
+                       class="datatb table table-bordered table-striped" sort="-1"
+                       tal:condition="brains">
+                <thead><tr>
+                    <th i18n:translate="">
+                        Title
+                    </th>
+                    <th width="12%"
+                        title="Modification date"
+                        i18n:attributes="title modification_date"
+                        i18n:translate="modification_date_short">
+                        Mod. date
+                    </th>
+                    <th width="10%"
+                        i18n:translate="">
+                        State
+                    </th>
+                    <th width="12%"
+                        title="Publication date"
+                        i18n:attributes="title publishing_date"
+                        i18n:translate="publishing_date_short">
+                        Publ. date
+                    </th>
+                    <th width="12%"
+                        i18n:translate="column_owner">
+                        Owner
+                    </th>
+                    <th width="12%"
+                        title="Owned by group"
+                        i18n:translate=""
+                        i18n:attributes="title group_availability">
+                        Group
+                    </th>
+                    <td width="8%">
+                        <!-- kein sortierbarer Inhalt -->
+                    </td>
+                </tr></thead>
+                <tbody tal:define="
+member_id python:info['user_id'];
+suffix suffix | string:;
+toTime python:hub['totime'];
+cMO python:temp.canModifyObject;
+cDO python:temp.canDeleteObject;
+">
+                <tal:loop1 repeat="brain brains">
+                    <tr tal:define="
+brain_uid python:brain.UID;
+canModify python:cMO(brain_uid);
+canDelete python:cDO(brain_uid);
+title brain/Title;
+title_empty python:not title or not title.strip();
+review_state brain/@@resolvereviewstate;
+owner_id python:brain.Creator;
+mine python:owner_id == member_id;
+groups python:brain.getUnitraccGroups;
+brain_url brain/getURL;
+view_url string:$brain_url/view$suffix;
+">
+                        <td>
+                            <i tal:omit-tag="not:groups">
+                            <a tal:attributes="href view_url"
+                               href=".../view"
+                               ><tal:if condition="not:title_empty"
+                                        content="title">
+                               Titel des Objekts
+                               </tal:if><tal:notitle
+                                        condition="title_empty"
+                                        content="brain/id">die-id-des-objekts
+                               </tal:notitle
+                            ></a>
+                            </i>
+                            <em tal:condition="title_empty"
+                                title="This item was created but obviously never saved; you might want to complete or delete it."
+                                i18n:attributes="title"
+                                i18n:translate="">(untitled)</em>
+                        </td>
+                        <td>
+                            <tal:block tal:content="python:toTime(brain.modified)"
+                                       tal:on-error="structure string:<!-- (${brain_uid}).modified=${brain/modified} -->"/>
+                        </td>
+                        <td>
+                            <tal:block tal:content="review_state"
+                                       i18n:translate=""/>
+                        </td>
+                        <td tal:define="possible_pubdate python:review_state not in ['private', 'submitted']">
+                            <tal:block tal:condition="possible_pubdate"
+                                       tal:on-error="structure string:<!-- (${brain_uid}).effective (1) -->"
+                                       tal:define="
+publishing_date python:brain.effective;
+date_iso python:publishing_date and publishing_date.ISO() or '';
+use_date python:date_iso and (date_iso != '2020-12-31 00:00:00') and (date_iso != '2030-12-31 00:00:00');
+">
+                                <div tal:condition="use_date"
+                                     tal:content="python:toTime(publishing_date, True)"
+                                     tal:on-error="structure string:<!-- (${brain_uid}).effective=$publishing_date -->"/>
+                                <div class="center"
+                                     tal:condition="not:use_date">---</div>
+                            </tal:block>
+                            <tal:else condition="not:possible_pubdate">
+                                <div class="center">---</div>
+                            </tal:else>
+                        </td>
+                        <td >
+                            <strong tal:content="owner_id"
+                                    tal:omit-tag="not:mine"
+                                    >Heinz</strong>
+                        </td>
+                        <td >
+                            <tal:gloop tal:repeat="group_id groups">
+                            <span tal:content="python:ggibi(group_id)['group_title']"
+                                  tal:on-error="group_id">
+                            Gruppentitel
+                            </span><tal:txt condition="not:repeat/group_id/end">,</tal:txt>
+                            </tal:gloop>
+                            <div tal:condition="not:groups">---</div>
+                        </td>
+                        <td >
+                            <a tal:attributes="href view_url;
+                                               title msgstrView"
+                                ><i class="glyphicon glyphicon-eye-open"></i></a>
+                            <a tal:condition="canModify"
+                               tal:attributes="href string:$brain_url/edit$suffix;
+                                               title msgstrEdit;
+                                               "
+                                ><i class="glyphicon glyphicon-edit"></i></a>
+                            <a tal:condition="canDelete"
+                               tal:define="
+msgstrDeleteConfirm msgstrDeleteConfirm | python:translate('Do you really want to delete ${title}?', mapping={'title':title});
+" tal:attributes="
+href string:${brain_url}/@@delete/deleteObject?referer=True;
+onclick string:return confirm('${msgstrDeleteConfirm}');
+title msgstrDelete"
+                                ><i class="glyphicon glyphicon-trash"></i></a>
+                            <a tal:condition="show_download_links"
+                               tal:attributes="href string:${brain_url}/at_download/file; "
+                               title="Click here to download."
+                               i18n:attributes="title click_to_download"
+                                ><i class="glyphicon glyphicon-download"></i></a>
+                        </td>
+                    </tr>
+                </tal:loop1>
+                </tbody>
+                </table>
+
+            </tal:block>
+
+    </div>
+
+</metal:main>
+
+</body>
+<!-- vim: set ts=2 sts=2 sw=2 si et hls :--></html></metal:bigmac></tal:ns>

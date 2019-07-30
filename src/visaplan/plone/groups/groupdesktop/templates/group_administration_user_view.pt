@@ -1,0 +1,108 @@
+<metal:block metal:use-macro="here/main_template/macros/master"
+             i18n:domain="plone">
+
+    <metal:no-ads fill-slot="ad-block-above-content"/>
+    <metal:no-ads fill-slot="column_one_slot"/>
+    <metal:no-ads fill-slot="column_two_slot"/>
+
+<metal:block metal:fill-slot="main">
+    <metal:block metal:define-macro="main"
+                 tal:define="form nocall:request/form;
+                             gid form/gid | nothing;
+                             groupdesktop nocall:context/@@groupdesktop;
+                             dummy python:groupdesktop.auth_view_group_administration(gid);
+                             groupsharing nocall:context/@@groupsharing;
+                             group_info python:groupsharing.get_group_info_by_id(gid);
+                             group_memberships python:groupsharing.get_explicit_group_memberships(gid);
+                             ">
+
+    <h1 class="documentFirstHeading"
+        i18n:translate="">
+        Manage group memberships for
+        <tal:block tal:content="group_info/group_title"
+                   i18n:name="value">
+            Gruppen-ID
+        </tal:block>
+    </h1>
+
+    <table class="table table-bordered datatb table-sorted">
+    <thead>
+    <tr>
+        <th i18n:translate="">
+            Type
+        </th>
+        <th i18n:translate="label_login_name">
+            Login Name
+        </th>
+        <th i18n:translate="">
+            Name
+        </th>
+        <th i18n:translate="">
+            Member since
+        </th>
+        <th i18n:translate="">
+            Member till
+        </th>
+        <th i18n:translate="">
+            Actions
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr tal:repeat="dict_ group_memberships">
+            <td>
+                <tal:block tal:define="ty python:dict_['type']"
+                           tal:condition="ty"
+                           tal:content="python:ty.title()"
+                           i18n:translate=""
+                           tal:on-error="ty">
+                Benutzer
+                </tal:block>
+            </td>
+            <td>
+                <tal:block tal:content="dict_/id"/>
+            </td>
+            <td>
+                <tal:block tal:content="dict_/title"/>
+            </td>
+            <td>
+                <tal:block tal:condition="dict_/start"
+                           tal:content="dict_/start"/>
+            </td>
+            <td>
+                <tal:block tal:condition="dict_/ends"
+                           tal:content="dict_/ends"/>
+
+            </td>
+            <td>
+                <div class="btn-group">
+                    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a tal:condition="dict_/email | nothing"
+                               href="mailto:heinz@kunz"
+                               tal:attributes="href string:mailto:${dict_/email}"
+                               i18n:translate="">
+                                Contact
+                            </a>
+                            <a class="confirm-general"
+                               href="#"
+                               tal:attributes="href string:${context/absolute_url}/@@groupdesktop/set_end_of_group_membership_to_today?gid=${gid}&user_id=${dict_/id}"
+                               i18n:translate="">
+                                End membership
+                            </a>
+                        </li>
+
+                    </ul>
+                </div>
+            </td>
+    </tr>
+    </tbody>
+    </table>
+
+
+
+    </metal:block>
+</metal:block>
+
+</metal:block>

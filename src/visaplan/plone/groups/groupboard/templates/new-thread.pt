@@ -1,0 +1,153 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      lang="en"
+      metal:use-macro="here/main_template/macros/master"
+      i18n:domain="plone">
+
+    <metal:block fill-slot="top_slot"
+             tal:define="dummy python:request.set('disable_border',1);" />
+    <metal:no-ads fill-slot="column_two_slot"/>
+    <metal:no-ads fill-slot="column_one_slot"/>
+    <head>
+        <metal:js fill-slot="head_slot">
+        <metal:js define-macro="chosen-js">
+        <script type="text/javascript">
+        function filterOptions(){
+            handleOverLay(true);
+            $("#go_to_groupdesktop").submit();
+        }
+        $(document).ready(function () {
+            $('select.chosen').chosen().change(filterOptions);
+        });
+        </script>
+      </metal:js>
+      </metal:js>
+    </head>
+    <body>
+        <metal:cr_outer fill-slot="breadcrumb">
+            <metal:breadcrumb use-macro="here/crumbs/macros/main"/>
+
+        </metal:cr_outer>
+
+        <metal:main fill-slot="main"
+                    tal:define="
+gid request/gid|options/gid|nothing;
+group request/group|options/group|nothing;
+subject request/subject|options/subject|nothing;
+content request/content|options/content|nothing;
+mid options/mid|nothing;
+errors python:request.get('error','') ;
+error python: errors.split(',');
+tid request/tid | nothing;
+gs python:here.getBrowser('groupsharing');
+groupboard python:here.getBrowser('groupboard');
+guidelinesuid groupboard/get_guidelines;
+groups python:(not gid and not group) and gs.voc_get_explicit_group_memberships_for_auth();
+">
+            <div class="area-title">
+                <h1 i18n:translate="" tal:condition="not: tid">
+                    Create a new thread
+                </h1>
+                <h1 tal:condition="tid" i18n:translate="">
+                    Edit thread
+                </h1>
+            </div>
+            <div class="area-content">
+                <div class="well">
+                    <div class="well-content">
+                        <p i18n:translate="new_thread_description"
+                           tal:condition="not: tid">
+                            Create a new thread for your working group and add the first post.
+                        </p>
+                        <p i18n:translate=""
+                           tal:condition="tid">
+                            Edit a thread for your working group
+                        </p>
+                    </div>
+                </div>
+                <div class="new-thread">
+                    <form method="POST" action="@@groupboard/save"
+                          tal:condition="python: gid or group or groups">
+                        <input type="hidden" name="mid"
+                               tal:condition="mid"
+                               tal:attributes="value mid"/>
+                        <input type="hidden" name="tid"
+                               tal:condition="tid"
+                               tal:attributes="value tid"/>
+                        <div class="field"
+                             tal:define="groups python:gs.voc_get_explicit_group_memberships_for_auth();">
+                            <label
+                                tal:attributes="class python:'1' in error and 'text-error' or ''">
+                                <i class="glyphicon glyphicon-exclamation-sign"></i>
+                                <tal:block i18n:translate="">Working group</tal:block>
+                            </label>
+                            <select name="group" class="chosen"
+                                    tal:condition="python:not gid"
+                                    data-placeholder="Choose one ..."
+                                    i18n:attributes="data-placeholder"
+                                    style="width:50%">
+                                <option></option>
+                                <tal:loop tal:repeat="row groups">
+                                <option tal:attributes="value python:row[0];
+                                                        selected python:row[0]==group or ''"
+                                        tal:content="python:row[1]"
+                                        i18n:translate=""/>
+                                </tal:loop>
+                            </select>
+                            <tal:block tal:condition="gid">
+                                <input type="hidden" tal:attributes="value gid|group"
+                                       name="group">
+
+                                <p tal:define="title python:gs.get_group_info_by_id(gid)"
+                                   tal:content="structure title/group_title"
+                                   i18n:translate=""/>
+                            </tal:block>
+                        </div>
+
+                        <div id="archetypes-fieldname-title" class="field">
+                            <label tal:attributes="class python:'2' in error and 'text-error' or ''">
+                                <i class="glyphicon glyphicon-exclamation-sign"></i>
+                                <tal:block i18n:translate="">Thread</tal:block>
+                            </label>
+
+                            <input tal:attributes="value subject" type="text" class="input-xxlarge" name="subject" size="5">
+                        </div>
+                        <div class="field">
+                            <label tal:attributes="class python:'4' in error and 'checkbox text-error' or 'checkbox'">
+                            <input type="checkbox" name="boardrules"
+                                       id="boardrules"/>
+                            <i class="glyphicon glyphicon-exclamation-sign"></i>
+                            <tal:block i18n:translate="boardguidelines">
+                                I certify that my contribution meets the
+                                <a href="/@@resolveuid/12345" target="_blank"
+                                   tal:attributes="href string:/@@resolvei18n/${guidelinesuid}"
+                                   i18n:name="boardguidelineslink"
+                                   i18n:translate="boardguidelineslink">
+                                    board guidelines</a>.
+                            </tal:block>
+                        </label>
+                        </div>
+                        <div class="field">
+                            <label class=""
+                                   tal:attributes="class python:'3' in error and 'text-error' or ''">
+                                <i class="glyphicon glyphicon-exclamation-sign"></i>
+                                <tal:block i18n:translate="">Post</tal:block>
+                            </label>
+                            <textarea tal:content="content" name="content" class="thread-content col-md-7" rows="15"></textarea>
+                        </div>
+                        <div>
+                            <input type="submit" value="Store" class="btn btn-primary" i18n:attributes="value">
+                            <input type="reset" value="Reset" class="btn btn-default" i18n:attributes="value">
+                        </div>
+                    </form>
+                    <p tal:condition="python: not gid and not group and not groups"
+                       i18n:translate="">
+                        You must be member of a group to create a thread.
+                    </p>
+                </div>
+            </div>
+        </metal:main>
+    </body>
+</html>

@@ -1,0 +1,105 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      i18n:domain="plone">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Unitracc-Makros 1</title>
+</head>
+<body>
+
+  <h1>Makros f&uuml;r Unitracc-Templates</h1>
+  <h2>journalfeed</h2>
+  <p>Erzeugt einen RSS-Feed für alle drei <em>Aktuelles</em>-Bereiche
+  und verwendet dabei <a href="#feed">feed</a>.</p>
+  <h2>feed</h2>
+  <p>Erzeugt einen beliebigen RSS-Feed. Argumente:</p>
+  <dl>
+    <dt>url</dt>
+    <dd>Die vollständige URL</dd>
+    <dt>feed</dt>
+    <dd>Alternativ zu <em>url</em>: wird an <tt>/@@rssfeed</tt> angehängt</dd>
+    <dd>title</dd>
+    <dt>Message-ID eines <tt>title</tt>-Attributs</dt>
+  </dl>
+  <metal:mac1 define-macro="journalfeed"
+  ><tal:feed define="feed string:journalfeed;
+                    title string:feed_journal_title">
+  <link rel="alternate" type="application/rss+xml"
+  tal:define="url url | string:/@@rssfeed/${feed}"
+  tal:attributes="title title; href url"
+  metal:define-macro="feed"
+  i18n:attributes="title">
+  </tal:feed></metal:mac1>
+
+  <metal:mac2 define-macro="newsfeed"
+  ><tal:feed define="feed string:newsfeed;
+  title string:feed_news_title"
+  ><link metal:use-macro="template/macros/feed"
+  ></tal:feed></metal:mac2>
+
+  <metal:mac3 define-macro="eventsfeed"
+  ><tal:feed define="feed string:eventsfeed;
+  title string:feed_events_title"
+  ><link metal:use-macro="template/macros/feed"
+  ></tal:feed></metal:mac3>
+
+  <metal:mac4 define-macro="articlesfeed"
+  ><tal:feed define="feed string:articlesfeed;
+  title string:feed_articles_title"
+  ><link metal:use-macro="template/macros/feed"
+  ></tal:feed></metal:mac4>
+
+  <div class="subsection-header"
+       metal:define-macro="subsection-header"
+       ><tal:ns1 define="
+         url url | brain/getURL;
+         text text | brain/pretty_title_or_id;
+         title title | nothing;
+         ">
+      <p class="title">
+          <a tal:attributes="href url; title title"
+             tal:content="text"
+             i18n:attributes="title"
+             />
+      </p>
+      <p class="link" metal:define-macro="feed-link-p">
+          <a href="/@@rssfeed/newsfeed"
+             target="feed"
+             rel="alternate" type="application/rss+xml"
+             tal:define="feed_url feed_url | string:/@@rssfeed/${feed}"
+             tal:attributes="href feed_url"
+            ><img src="/++resource++unitracc-images/icon-rss-feed.png"
+                  height="24" width="24"
+                  alt="RSS feed"
+                  i18n:attributes="alt"></a>
+      </p></tal:ns1>
+  </div>
+
+  <p>
+  Entnommen aus <a href="../../browser/mycontent/templates/my-content.pt"
+    >@@mycontent/my-content.pt</a>,
+  von dort aber schwierig zu verwenden:
+  </p>
+  <metal:mac5 define-macro="breadcrumb">
+    &nbsp;|&nbsp;
+    <a href="#" i18n:translate=""
+       metal:define-macro="base-breadcrumb"
+       tal:content="text"
+       tal:attributes="href url">myCONTENT</a>
+  </metal:mac5>
+
+  <metal:mac6 define-macro="untranslated-breadcrumb">
+    &nbsp;|&nbsp;
+    <a href="#"
+       tal:content="text"
+       tal:attributes="href url">myCONTENT</a>
+  </metal:mac6>
+
+  <metal:mac7 define-macro="home-breadcrumb">
+  <a href="/" i18n:translate=""
+     >Home</a>
+  </metal:mac7>
+</body>
+</html><!-- vim: set ts=8 sts=2 sw=2 si et hls :-->

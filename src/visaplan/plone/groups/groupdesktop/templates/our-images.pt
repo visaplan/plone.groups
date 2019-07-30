@@ -1,0 +1,12 @@
+<tal:ns define="
+groupdesktop python:here.getBrowser('groupdesktop');
+topic string:image;
+" i18n:domain="plone"><metal:bigmac
+use-macro="here/our-articles/macros/ourstuff">
+
+<metal:hint fill-slot="new-stuff-hint">
+<p i18n:translate="own_images_desc">
+   Please note that your pictures have to be saved with appropriate meta data and have to be submitted afterwards, in order to be accepted for the UNITRACC content pool. Furthermore, it is not necessary to upload a picture in various sizes since the UNITRACC system provides its users with several resized variations of a picture. Because of that, it is sufficient to simply upload a picture in the largest size available (as a JPG, GIF or PNG file).
+</p>
+</metal:hint>
+<!-- vim: set ts=2 sts=2 sw=2 si noet hls :--></metal:bigmac></tal:ns>

@@ -1,0 +1,19 @@
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:browser="http://namespaces.zope.org/browser"
+           xmlns:five="http://namespaces.zope.org/five">
+
+  <browser:page
+      for="*"
+      name="groupdesktop"
+      class=".browser.Browser"
+      permission="zope2.View"
+      allowed_interface=".browser.IGroupDesktop"
+      />
+
+    <include package=".templates" />
+    <include package="visaplan.plone.base" />
+    <include package="visaplan.tools" />
+    <include package="visaplan.plone.tools" />
+    <include package="visaplan.plone.infohubs" />
+
+</configure>
