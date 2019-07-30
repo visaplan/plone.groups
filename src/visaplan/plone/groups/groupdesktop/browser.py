@@ -313,7 +313,7 @@ class Browser(BrowserView):
             pass
         else:
             checkperm = context.getAdapter('checkperm')
-            if not checkperm(ManageGroups):
+            if not checkperm(ManageGroups, context):
                 logger.info('User %r nicht in Gruppe, keine Perm. "Manage Groups"'
                             % (myId,))
                 return []
@@ -471,7 +471,7 @@ class Browser(BrowserView):
         context = self.context
 
         checkperm = context.getAdapter('checkperm')
-        if checkperm(ManageGroups):
+        if checkperm(ManageGroups, context):
             return True
 
         groupbrowser = context.getBrowser('groups')
@@ -494,10 +494,10 @@ class Browser(BrowserView):
 
         getAdapter = context.getAdapter
         checkperm = getAdapter('checkperm')
-        if checkperm(ManageGroups):
+        if checkperm(ManageGroups, context):
             return gimme_True
 
-        cm = checkperm(ManageCourses)
+        cm = checkperm(ManageCourses, context)
 
         groupbrowser = context.getBrowser('groups')
         if not user_id:

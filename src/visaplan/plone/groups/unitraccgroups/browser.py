@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
 from visaplan.plone.base import BrowserView, implements, Interface
-from .utils import split_group_id, STRUCTURE_GROUP_SUFFIXES, \
-        generic_group_id
+from .utils import (STRUCTURE_GROUP_SUFFIXES,
+        generic_group_id, split_group_id,
+        )
 
 class IUnitraccGroups(Interface):
 
-    def getStructureGroupPrefixes(self):
+    def getStructureGroupPrefixes():
         """
         Gib die "Praefixe" (eigentlich natuerlich Suffixe) zurueck,
         die fuer die assoziierten Gruppen der Strukturelemente
         verwendet werden
         """
 
-    def buildStructureGroupName(self, uid, prefix):
+    def buildStructureGroupName(uid, prefix):
         """
         Gib die generische Gruppen-ID für die übergebene UID und das übergeben Suffix zurück;
         siehe auch .utils.learner_group_id().
         """
 
-    def generateAssociatedGroups(self, uid):
+    def generateAssociatedGroups(uid):
         """
         erzeuge alle assoziierten Gruppennamen fuer
         die uebergebene UID

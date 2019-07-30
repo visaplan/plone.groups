@@ -35,6 +35,8 @@ from visaplan.tools.lands0 import list_of_strings
 from visaplan.plone.tools.forms import (tryagain_url, detect_duplicates,
         back_to_referer,
         )
+from visaplan.plone.tools.context import message
+from visaplan.plone.tools.context import getbrain
 from visaplan.tools.classes import Proxy
 from visaplan.tools.profile import StopWatch
 from visaplan.tools.dates import make_date_formatter
@@ -275,13 +277,12 @@ class Browser(BrowserView):
         Darf der aktuell angemeldete Benutzer die Gruppe bearbeiten?
         """
         context = self.context
-        getAdapter = context.getAdapter
-        checkperm = getAdapter('checkperm')
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
 
         for perm in ('Manage portal',
                      ManageGroups,
                      ):
-            if checkperm(perm):
+            if checkperm(perm, context):
                 return True
 
         if groupinfo is None:
@@ -299,7 +300,7 @@ class Browser(BrowserView):
             ggibi = groupinfo_factory(context)
             groupinfo = ggibi(gid)
 
-        member = getAdapter('auth')()
+        member = getToolByName(context, 'portal_membership').getAuthenticatedMember()
         member_id = member.getId()
         try:
             return groupinfo['group_manager'] == member_id
@@ -339,10 +340,10 @@ class Browser(BrowserView):
         """
 
         context = self.context
+        pg = getToolByName(context, 'portal_groups')
         getAdapter = context.getAdapter
-        pg = getAdapter('pg')()
         group = pg.getGroupById(group_id)
-        acl = getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
 
         dict_ = {'id': group_id}
         try:
@@ -371,13 +372,12 @@ class Browser(BrowserView):
             return dict_
 
         translate = getAdapter('translate')
-        getbrain = getAdapter('getbrain')
 
         if dic['role'] is None:
             dict_['role_translation'] = None
         else:
             dict_['role_translation'] = translate(dic['role'])
-        dict_['brain'] = getbrain(dic['uid'])
+        dict_['brain'] = getbrain(context, dic['uid'])
         if pretty:
             liz = dict_['group_title'].split()
             if liz and liz[-1] == dict_['role']:
@@ -537,7 +537,7 @@ class Browser(BrowserView):
         Gib die IDs *aller* vorhandenen Gruppen zurück
         """
         context = self.context
-        acl = context.getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
 
         group_ids = list(acl.source_groups._groups)
         if 'AuthenticatedUsers' in group_ids:
@@ -553,7 +553,7 @@ class Browser(BrowserView):
         _get_all_group_ids nicht einfach ersetzt.
         """
         context = self.context
-        acl = context.getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
 
         group_ids = set(acl.source_groups._groups)
         group_ids.difference_update(BORING_GROUPS)
@@ -579,14 +579,13 @@ class Browser(BrowserView):
         gesucht.
         """
         context = self.context
-        getAdapter = context.getAdapter
-        acl = getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
         user = acl.getUser(id)
         group_ids = set()
         if user:
             group_ids = set(user.getGroups())
         else:
-            pg = getAdapter('pg')()
+            pg = getToolByName(context, 'portal_groups')
             group = pg.getGroupById(id)
             if group:
                 group_ids = set(group.getGroups())
@@ -613,7 +612,7 @@ class Browser(BrowserView):
                        % (uogid, USE_ZOPE_METHODS),
                        **sw_kwargs) as stopwatch:
             context = self.context
-            acl = context.getAdapter('acl')()
+            acl = getToolByName(context, 'acl_users')
             if USE_ZOPE_METHODS:
                 uogo = acl.getUser(uogid)  # "user or group object"
                 if uogo is None:
@@ -647,7 +646,7 @@ class Browser(BrowserView):
         schmerzbefreit zwischen den etwaigen Gruppen-IDs zurückgegeben.
         """
         context = self.context
-        acl = context.getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
         gpm = acl.source_groups._group_principal_map
         group_ids = build_groups_set(gpm, uogid)
         group_ids.difference_update(BORING_GROUPS)
@@ -660,7 +659,7 @@ class Browser(BrowserView):
         (siehe unten)
         """
         context = self.context
-        acl = context.getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
         #string_ can be user_id or group_id
         return string_ in acl.source_groups._group_principal_map[group_id]
 
@@ -691,19 +690,19 @@ class Browser(BrowserView):
 
             getBrowser('authorized').raiseAnon()
 
-            acl = getAdapter('acl')()
+            acl = getToolByName(context, 'acl_users')
             author = getBrowser('author')
             ggibi = groupinfo_factory(self.context)
             group = ggibi(group_id)
-            pg = getAdapter('pg')()
+            pg = getToolByName(context, 'portal_groups')
             list_ = []
             # OOSet hat keine difference-Methode:
             try:
                 members_zope = set(acl.source_groups._group_principal_map[group_id])
                 DBG_P('members_zope = %s', members_zope)
             except KeyError:
-                message = getAdapter('message')
-                message('Group ${group_id} not found!',
+                message(context,
+                        'Group ${group_id} not found!',
                         'error',
                         mapping=locals())
                 return []
@@ -848,7 +847,7 @@ class Browser(BrowserView):
             courses = []
             alumni_gids = []  # Alumni-Gruppen
             desktops1 = []
-            acl = getAdapter('acl')()
+            acl = getToolByName(context, 'acl_users')
             user = acl.getUser(user_id)
             if not user:
                 return courses, desktops1
@@ -895,7 +894,7 @@ class Browser(BrowserView):
                         elif id == gid:
                             desktops2.append(dic)
 
-                pg = getAdapter('pg')()  # Tool 'portal_groups'
+                pg = getToolByName(context, 'portal_groups')
                 group = pg.getGroupById(gid)
                 if group:
                     all_groups_of_group = set(group.getGroups())
@@ -1015,18 +1014,17 @@ class Browser(BrowserView):
         authorized.raiseAnon()
         DBG_P('get_inherited_group_memberships_by_user_id(user_id=%r)', user_id)
 
-        getAdapter = context.getAdapter
-        member = getAdapter('auth')()
+        member = getToolByName(context, 'portal_membership').getAuthenticatedMember()
         my_id = member.getId()
         DBG_P('... my_id = %r', my_id)
         if my_id != user_id:
-            checkperm = getAdapter('checkperm')
-            if not (checkperm(ManageUsers)
-                    or checkperm(ManageGroups)
+            checkperm = getToolByName(context, 'portal_membership').checkPermission
+            if not (checkperm(ManageUsers, context)
+                    or checkperm(ManageGroups, context)
                     ):
                 raise Unauthorized
 
-        acl = getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
         groups = self._get_filtered_groups(user_id)
 
         list_ = []
@@ -1053,11 +1051,10 @@ class Browser(BrowserView):
         context = self.context
 
         getAdapter = context.getAdapter
-        checkperm = getAdapter('checkperm')
-        if not checkperm(ManageGroups):
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
+        if not checkperm(ManageGroups, context):
             raise Unauthorized
 
-        message = getAdapter('message')
         groups = context.getBrowser('groups')
         request = context.REQUEST
         form = request.form
@@ -1076,9 +1073,11 @@ class Browser(BrowserView):
                                query_data={'member_id_': id,
                                            'group_id_': group_id,
                                            })
-            message('Changes saved.')
+            message(context,
+                    'Changes saved.')
         else:
-            message('Please select an user or a group to remove.')
+            message(context,
+                    'Please select an user or a group to remove.')
         return request.RESPONSE.redirect(request['HTTP_REFERER'])
 
     def add_group_membership(self):
@@ -1095,13 +1094,12 @@ class Browser(BrowserView):
         context = self.context
 
         getAdapter = context.getAdapter
-        checkperm = getAdapter('checkperm')
-        if not (checkperm(ManageUsers) or
-                checkperm(ManageGroups)
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
+        if not (checkperm(ManageUsers, context) or
+                checkperm(ManageGroups, context)
                 ):
             raise Unauthorized
 
-        message = getAdapter('message')
         form = context.REQUEST.form
 
         member_id = form.get('user_id')
@@ -1114,7 +1112,8 @@ class Browser(BrowserView):
             with getAdapter("sqlwrapper") as sql:
                 for group_id in group_ids:
                     if group_id == member_id:
-                        message("Won't add group ${group_id} to itself!",
+                        message(context,
+                                "Won't add group ${group_id} to itself!",
                                 'error',
                                 mapping=locals())
                         continue
@@ -1125,9 +1124,11 @@ class Browser(BrowserView):
                     self._update_view_duration(group_id, member_id, sql,
                                                start, ends,
                                                TODAY)
-            message('Changes saved.')
+            message(context,
+                    'Changes saved.')
         else:
-            message('Nothing to do!', 'error')
+            message(context,
+                    'Nothing to do!', 'error')
         return context.REQUEST.RESPONSE.redirect(context.REQUEST['HTTP_REFERER'])
 
     # ------------------------------- [ Mitgliedschaften beenden ... [
@@ -1170,7 +1171,6 @@ class Browser(BrowserView):
             context = self.context
 
         getAdapter = context.getAdapter
-        message = getAdapter('message')
         _ = getAdapter('translate')
         request = context.REQUEST
         form = request.form
@@ -1191,10 +1191,12 @@ class Browser(BrowserView):
         # ... dann prüfen, ...
         errors = 0
         if not member_ids:
-            message('No member ids given', 'error')
+            message(context,
+                    'No member ids given', 'error')
             errors += 1
         if not group_ids:
-            message('No group ids given', 'error')
+            message(context,
+                    'No group ids given', 'error')
             errors += 1
         if errors:
             return back_to_referer(context)
@@ -1226,7 +1228,8 @@ class Browser(BrowserView):
             for group_id in sorted(set(group_ids)):
                 if not can_admin(group_id):
                     errors += 1
-                    message('You are not allowed to administrate group '
+                    message(context,
+                            'You are not allowed to administrate group '
                             '${group_id}',
                             'error',
                             mapping=locals())
@@ -1237,12 +1240,15 @@ class Browser(BrowserView):
                                                0, ends, TODAY)
                     counter += 1
             if counter == 1 and sing_msg:
-                message(sing_msg, mapping=mapping)
+                message(context,
+                        sing_msg, mapping=mapping)
             elif counter:
-                message('Ended ${counter} memberships.',
+                message(context,
+                        'Ended ${counter} memberships.',
                         mapping=locals())
             elif not errors:
-                message('Nothing to do!',
+                message(context,
+                        'Nothing to do!',
                         'warning')
         return request.RESPONSE.redirect(url)
     # ------------------------------- ] ... Mitgliedschaften beenden ]
@@ -1286,7 +1292,6 @@ class Browser(BrowserView):
             context = self.context
 
         getAdapter = context.getAdapter
-        message = getAdapter('message')
         _ = getAdapter('translate')
         request = context.REQUEST
         form = request.form
@@ -1307,10 +1312,12 @@ class Browser(BrowserView):
         # ... dann prüfen, ...
         errors = 0
         if not member_ids:
-            message('No member ids given', 'error')
+            message(context,
+                    'No member ids given', 'error')
             errors += 1
         if not group_ids:
-            message('No group ids given', 'error')
+            message(context,
+                    'No group ids given', 'error')
             errors += 1
         if errors:
             return back_to_referer(context)
@@ -1342,7 +1349,8 @@ class Browser(BrowserView):
             for group_id in sorted(set(group_ids)):
                 if not can_admin(group_id):
                     errors += 1
-                    message('You are not allowed to administrate group '
+                    message(context,
+                            'You are not allowed to administrate group '
                             '${group_id}',
                             'error',
                             mapping=locals())
@@ -1352,12 +1360,15 @@ class Browser(BrowserView):
                                                sql)
                     counter += 1
             if counter == 1 and sing_msg:
-                message(sing_msg, mapping=mapping)
+                message(context,
+                        sing_msg, mapping=mapping)
             elif counter:
-                message('Deleted ${counter} memberships.',
+                message(context,
+                        'Deleted ${counter} memberships.',
                         mapping=locals())
             elif not errors:
-                message('Nothing to do!',
+                message(context,
+                        'Nothing to do!',
                         'warning')
         return request.RESPONSE.redirect(url)
 
@@ -1382,12 +1393,11 @@ class Browser(BrowserView):
     def search_groups(self, string_='', sort_=True):
 
         context = self.context
-        getAdapter = context.getAdapter
         getBrowser = context.getBrowser
 
         # hier wollen wir die Gruppen nur sehen,
         # also sollte ViewGroups reichen :
-        checkperm = getAdapter('pm')().checkPermission
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
         if not (checkperm(ManageGroups, context) or
                 # TODO: detaillierterer Check für Kursmanager?
                 checkperm(ManageCourses, context) or
@@ -1395,7 +1405,7 @@ class Browser(BrowserView):
             ):
             raise Unauthorized
 
-        acl = getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
         lightsearch = getBrowser('lightsearch')
         filt = lightsearch.filter
         make_searchstring = groupinfo_factory(context, searchtext=True)
@@ -1450,9 +1460,8 @@ class Browser(BrowserView):
         """
 
         context = self.context
-        getAdapter = context.getAdapter
         getBrowser = context.getBrowser
-        checkperm = getAdapter('pm')().checkPermission
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
         if not (checkperm(ManageGroups, context) or
                 # TODO: detaillierterer Check für Kursmanager?
                 checkperm(ManageCourses, context) or
@@ -1461,8 +1470,8 @@ class Browser(BrowserView):
             raise Unauthorized
 
         form = context.REQUEST.form
-        sortindex = getAdapter('sortindex')
-        acl = getAdapter('acl')()
+        sortindex = context.getAdapter('sortindex')
+        acl = getToolByName(context, 'acl_users')
         lightsearch = getBrowser('lightsearch')
         author = getBrowser('author')
 
@@ -1503,16 +1512,15 @@ class Browser(BrowserView):
         context = self.context
         getAdapter = context.getAdapter
 
-        checkperm = self.context.getAdapter('checkperm')
-        if checkperm(ManageGroups):
+        checkperm = getToolByName(self.context, 'portal_membership').checkPermission
+        if checkperm(ManageGroups, context):
             cg_only = False
-        elif checkperm(ManageCourses):
+        elif checkperm(ManageCourses, context):
             # hat noch keine Wirkung:
             cg_only = True  # "course groups only"
         else:
             raise Unauthorized
 
-        message = getAdapter('message')
         request = context.REQUEST
         form = request.form
 
@@ -1536,7 +1544,8 @@ class Browser(BrowserView):
             with getAdapter("sqlwrapper") as sql:
                 for member_id in ids:
                     if group_id == member_id:
-                        message("Won't add group ${group_id} to itself!",
+                        message(context,
+                                "Won't add group ${group_id} to itself!",
                                 'error',
                                 mapping=locals())
                         continue
@@ -1547,9 +1556,11 @@ class Browser(BrowserView):
                     self._update_view_duration(group_id, member_id, sql,
                                                start, ends,
                                                TODAY)
-            message('Changes saved.')
+            message(context,
+                    'Changes saved.')
         else:
-            message('Nothing to do!', 'error')
+            message(context,
+                    'Nothing to do!', 'error')
 
         return request.RESPONSE.redirect(request['HTTP_REFERER'])
 
@@ -1561,24 +1572,27 @@ class Browser(BrowserView):
         context = self.context
 
         getAdapter = context.getAdapter
-        getAdapter('authorized')(ManageGroups)
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
+        if not checkperm(ManageGroups, context):
+            raise Unauthorized
 
-        message = getAdapter('message')
         request = context.REQUEST
         form = request.form
         logger.debug('delete_groups: form=\n%s', pformat(form))
 
         group_ids = form.get('group_ids', [])
         if group_ids:
-            acl = getAdapter('acl')()
+            acl = getToolByName(context, 'acl_users')
 
             for group_id in group_ids:
                 acl.source_groups.removeGroup(group_id)
                 logger.info('group %(group_id)r deleted', locals())
 
-            message('Changes saved.')
+            message(context,
+                    'Changes saved.')
         else:
-            message('Nothing to do!', 'error')
+            message(context,
+                    'Nothing to do!', 'error')
 
         return request.RESPONSE.redirect(request['HTTP_REFERER'])
 
@@ -1587,17 +1601,19 @@ class Browser(BrowserView):
         context = self.context
 
         getAdapter = context.getAdapter
-        getAdapter('authorized')(ManageGroups)
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
+        if not checkperm(ManageGroups, context):
+            raise Unauthorized
 
-        acl = getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
         form = context.REQUEST.form
-        message = getAdapter('message')
         acl.source_groups.updateGroup(group_id=form.get('group_id'),
                                       title=form.get('title', ''),
                                       description=form.get('description', ''),
                                       group_desktop=form.get('group_desktop', ''),
                                       )
-        message('Changes saved.')
+        message(context,
+                'Changes saved.')
 
         return context.REQUEST.RESPONSE.redirect(context.REQUEST['HTTP_REFERER'])
 
@@ -1607,7 +1623,7 @@ class Browser(BrowserView):
         """
 
         context = self.context
-        member = context.getAdapter('auth')()
+        member = getToolByName(context, 'portal_membership').getAuthenticatedMember()
         gd = context.getBrowser('groupdesktop')
         excluded = gd.getGroupsBlacklist()
         return [(dict_['id'], dict_['group_title'])
@@ -1621,17 +1637,16 @@ class Browser(BrowserView):
         """
 
         context = self.context
-        getAdapter = context.getAdapter
-        checkperm = getAdapter('checkperm')
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
 
         for perm in ('Manage portal',
                      # ViewGroups,
                      ManageGroups,
                      ):
-            if checkperm(perm):
+            if checkperm(perm, context):
                 return True
 
-        member = getAdapter('auth')()
+        member = getToolByName(context, 'portal_membership').getAuthenticatedMember()
         if context.Creator() == member.getId():
             if context.getReviewState() != 'published':
                 return True
@@ -1644,9 +1659,8 @@ class Browser(BrowserView):
         # XXX: Doppelverwendung der Variablen <id>!
 
         context = self.context
-        getAdapter = context.getAdapter
-        pg = getAdapter('pg')()
-        acl = getAdapter('acl')()
+        pg = getToolByName(context, 'portal_groups')
+        acl = getToolByName(context, 'acl_users')
 
         dict_ = {}
 
@@ -1675,8 +1689,8 @@ class Browser(BrowserView):
     def _connect_groups(self, today=None, journal=None,  # ----- [ _c._g. ... [
                         ggibi=None):
         context = self.context
+        portal = getToolByName(context, 'portal_url').getPortalObject()
         getAdapter = context.getAdapter
-        portal = getAdapter('portal')()
         grouplog = getAdapter('grouplog')
         if journal is None:
             journal = []
@@ -1843,7 +1857,7 @@ class Browser(BrowserView):
         """
         context = self.context
         getAdapter = context.getAdapter
-        portal = getAdapter('portal')()
+        portal = getToolByName(context, 'portal_url').getPortalObject()
         grouplog = getAdapter('grouplog')
         if journal is None:
             journal = []
@@ -1993,8 +2007,10 @@ class Browser(BrowserView):
         # print dir(request.RESPONSE)
         form = request.form
         verbose = makeBool(form.get('verbose', ''))
-        if verbose and not context.getAdapter('checkperm')(ManageGroups):
-            verbose = False
+        if verbose:
+            checkperm = getToolByName(context, 'portal_membership').checkPermission
+            if not checkperm(ManageGroups, context):
+                verbose = False
         journal = []
         # jedenfalls beide ausführen:
         ok = self._connect_groups(journal=journal)
@@ -2045,7 +2061,9 @@ class Browser(BrowserView):
         TODO: Testen mit neuen Versionen von _[dis]connect_groups
         """
         context = self.context
-        context.getAdapter('authorized')(ManageGroups)
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
+        if not checkperm(ManageGroups, context):
+            raise Unauthorized
         res = ['<html>']
 
         def tell(s, elem='p'):
@@ -2204,7 +2222,7 @@ class Browser(BrowserView):
 
         # 3. Zope-Gruppenzugehörigkeit
         context = self.context
-        acl = context.getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
         groups = context.getBrowser('groups')
         group_o = groups.getById(group_id)
         members = acl.source_groups._group_principal_map[group_id]
@@ -2261,13 +2279,14 @@ class Browser(BrowserView):
         """
         context = self.context
         getAdapter = context.getAdapter
-        is_group_manager = getAdapter('checkperm')(ManageGroups)
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
+        is_group_manager = checkperm(ManageGroups, context)
         if is_group_manager:
             if forlist is None:
                 forlist = True
         else:
             forlist = False  # group_manager-Information wird benötigt
-            user = getAdapter('auth')()
+            user = getToolByName(context, 'portal_membership').getAuthenticatedMember()
             user_id = str(user)
         ggibi = groupinfo_factory(self.context, pretty, forlist)
         if group_id:
@@ -2305,7 +2324,7 @@ class Browser(BrowserView):
           Benutzer-IDs, oder gemischt)
         """
         context = self.context
-        acl = context.getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
         gpm = acl.source_groups._group_principal_map
         filter_args = {}
         for key in ('groups_only', 'users_only',
@@ -2353,7 +2372,7 @@ class Browser(BrowserView):
         if not group_ids:
             return default
         if user_id is None:
-            member = context.getAdapter('auth')()
+            member = getToolByName(context, 'portal_membership').getAuthenticatedMember()
             user_id = member.getId()
 
         return user_id in self.get_all_members(group_ids)
@@ -2365,7 +2384,7 @@ def is_direct_member__factory(context, userid):
     Erzeuge eine Funktion, die prüft, ob der *beim Erzeugen angegebene* Nutzer
     in der bei jedem Aufruf anzugebenden Gruppe direkt enthalten ist.
     """
-    acl = context.getAdapter('acl')()
+    acl = getToolByName(context, 'acl_users')
     gpm = acl.source_groups._group_principal_map
     # <BTrees.OOBTree.OOBTree object at ...>
     # print 'gpm: %(gpm)r' % locals()
@@ -2381,7 +2400,7 @@ def is_member_of__factory(context, userid):
     Erzeuge eine Funktion, die die *direkte oder indirekte* Mitgliedschaft
     des übergebenen Users in der jeweils zu übergebenden Gruppe überprüft.
     """
-    acl = context.getAdapter('acl')()
+    acl = getToolByName(context, 'acl_users')
     gpm = acl.source_groups._group_principal_map
     # <BTrees.OOBTree.OOBTree object at ...>
     # print 'gpm: %(gpm)r' % locals()
@@ -2409,8 +2428,7 @@ def get_group_mapping_course__factory(context, group_ids, group_info):
                  Gruppen-Infos (siehe visaplan.tools.classes.Proxy)
     """
     getAdapter = context.getAdapter
-    acl = getAdapter('acl')()
-    getbrain = getAdapter('getbrain')
+    acl = getToolByName(context, 'acl_users')
     gpm = acl.source_groups._group_principal_map
 
     def get_group_mapping_course(coursegroup_id):
@@ -2429,7 +2447,7 @@ def get_group_mapping_course__factory(context, group_ids, group_info):
           die der Gruppe group_a)
         """
         course_uid, pseudorole = coursegroup_id.split('_')[1:]
-        course_brain = getbrain(course_uid)
+        course_brain = getbrain(context, course_uid)
         dic2 = {'coursegroup_id': coursegroup_id,
                 'course_uid': course_uid,
                 'course_brain': course_brain,
@@ -2476,11 +2494,10 @@ def groupinfo_factory(context, pretty=0, forlist=0, searchtext=0):
                aber mit pretty kombinierbar
     """
     getAdapter = context.getAdapter
-    pg = getAdapter('pg')()
+    pg = getToolByName(context, 'portal_groups')
     get_group = pg.getGroupById
-    acl = getAdapter('acl')()
+    acl = getToolByName(context, 'acl_users')
     translate = getAdapter('translate')
-    getbrain = getAdapter('getbrain')
     GROUPS = acl.source_groups._groups
 
     def minimal_group_info(group_id):
@@ -2525,7 +2542,7 @@ def groupinfo_factory(context, pretty=0, forlist=0, searchtext=0):
             dict_.update(dic)
 
         dict_['role_translation'] = translate(dic['role'])
-        dict_['brain'] = getbrain(dic['uid'])
+        dict_['brain'] = getbrain(context, dic['uid'])
         return dict_
 
     def pretty_group_info(group_id):
@@ -2639,7 +2656,7 @@ def userinfo_factory(context, pretty=0, forlist=0,
                (mit pretty kombinierbar)
     """
     getAdapter = context.getAdapter
-    acl = getAdapter('acl')()
+    acl = getToolByName(context, 'acl_users')
     acl_gu = acl.getUser
     if pretty or not forlist:
         getBrowser = context.getBrowser
