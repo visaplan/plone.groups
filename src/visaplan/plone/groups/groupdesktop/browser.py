@@ -3,6 +3,7 @@
 # Zope/Plone:
 from visaplan.plone.base import BrowserView, implements, Interface
 from Globals import DevelopmentMode
+from Products.CMFCore.utils import getToolByName
 
 # Unitracc:
 from visaplan.plone.base.permissions import ManageGroups, ManageCourses
@@ -312,7 +313,7 @@ class Browser(BrowserView):
         if myId in mids:
             pass
         else:
-            checkperm = context.getAdapter('checkperm')
+            checkperm = getToolByName(context, 'portal_membership').checkPermission
             if not checkperm(ManageGroups, context):
                 logger.info('User %r nicht in Gruppe, keine Perm. "Manage Groups"'
                             % (myId,))
@@ -321,7 +322,7 @@ class Browser(BrowserView):
                  'portal_type': 'UnitraccAuthor',
                  'Creator': mids,
                  }
-        pc = context.getAdapter('puc')()
+        pc = getToolByName(context, 'portal_user_catalog')
         rslt = pc(query)
         return rslt
 
@@ -365,7 +366,7 @@ class Browser(BrowserView):
             mkfilter = make_groupfilter(gid)
         else:
             # wenn nix Gruppe, dann *eigener* Schreibtisch
-            userid = context.getAdapter('auth')().getId()
+            userid = getToolByName(context, 'portal_membership').getAuthenticatedMember().getId()
             mkfilter = make_authorfilter(userid)
 
         # CHECKME: kann hier das typestr-Modul zur Vereinfachung eingesetzt werden?
@@ -470,7 +471,7 @@ class Browser(BrowserView):
     def can_view_group_administration(self, group_id, user_id=None):
         context = self.context
 
-        checkperm = context.getAdapter('checkperm')
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
         if checkperm(ManageGroups, context):
             return True
 
@@ -493,7 +494,8 @@ class Browser(BrowserView):
             context = self.context
 
         getAdapter = context.getAdapter
-        checkperm = getAdapter('checkperm')
+        # CHECKME: Brauchen wir das noch?
+        checkperm = getToolByName(context, 'portal_membership').checkPermission
         if checkperm(ManageGroups, context):
             return gimme_True
 

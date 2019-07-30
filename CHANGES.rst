@@ -2,8 +2,20 @@ Changelog
 =========
 
 
+1.0.2 (2019-05-13)
+------------------
+
+Bugfixes:
+
+- Fixed incomplete conversion of Tomcom adapters usage to ``getToolByName``
+
+[tobiasherp]
+
+
 1.0.1 (2019-05-09)
 ------------------
+
+Note: Due to a regression, please proceed to version 1.0.2!
 
 - New functions ``utils.generate_{structure,course}_group_ids``,
   ``generate_structure_group_tuples``
@@ -19,6 +31,7 @@ Changelog
 
   For now, the default value for ``resolve_role`` is *False*;
   this may change in future versions.
+
 
 [tobiasherp]
 

@@ -13,6 +13,7 @@ from visaplan.plone.base import BrowserView, implements, Interface
 
 # Unitracc-Tools:
 from visaplan.tools.coding import safe_decode
+from visaplan.plone.tools.context import message
 
 # Dieser Browser:
 from .utils import getsavedkey, make_getUserName
@@ -558,8 +559,8 @@ class Browser(BrowserView):
                 sql.update("groupboard_thread", values, where, form)
             except:
                 print "Thema '%s' bereits vorhanden." % subject
-                ms = context.getAdapter('message')
-                ms(_("Subject exists already in group."), 'error')
+                message(context,
+                        _("Subject exists already in group."), 'error')
                 return context.REQUEST.RESPONSE.redirect(url)
 
             # Daten für Nachricht zusammenbauen

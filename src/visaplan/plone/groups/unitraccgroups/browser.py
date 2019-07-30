@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from Products.CMFCore.utils import getToolByName
+
 from visaplan.plone.base import BrowserView, implements, Interface
 from .utils import (STRUCTURE_GROUP_SUFFIXES,
         generic_group_id, split_group_id,
@@ -76,7 +78,7 @@ class Browser(BrowserView):
         dic = split_group_id(gid)
         dic['group_id'] = gid
         context = self.context
-        acl = context.getAdapter('acl')()
+        acl = getToolByName(context, 'acl_users')
         dic['title'] = acl.source_groups._groups[gid]['title']
         return dic
 
